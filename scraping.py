@@ -1,3 +1,4 @@
+# coding: UTF-8
 print('hello world!')
 import requests
 import MySQLdb
