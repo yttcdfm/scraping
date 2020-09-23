@@ -4,7 +4,6 @@ import requests
 import MySQLdb
 import sys
 from bs4 import BeautifulSoup
-from enum import IntEnum, auto
 
 ###################
 # 定数定義部
