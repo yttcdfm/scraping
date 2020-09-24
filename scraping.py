@@ -149,7 +149,7 @@ def scraping(site_title, url):
   #print(searchCategory(articles[0].find('ul').find('a').text))
 
   dt_now = datetime.datetime.now()
-  file = site_title+dt_now.strftime('%Y%m%d%H%M')+".sql"
+  file = site_title+"_"+dt_now.strftime('%Y%m%d%H%M')+".sql"
   print(file)
   fileobj = open(file, "w", encoding = "utf_8")
   
