@@ -25,7 +25,6 @@ class PictureID:
 ###################
 #pictureテーブルへのデータ登録
 def insertPicture(picture, file):
-  print(picture[PictureID.SITE_NAME])
   #接続
   conn = MySQLdb.connect(
     user='zufyzqwv_admin',
@@ -77,7 +76,6 @@ fileobj = open(file, "w", encoding = "utf_8")
 
 # 連想配列に取得したデータを詰める
 for article in articles:
-  #print(article.find('img'))
   picture = {PictureID.SITE_NAME: 'ぬきすと',
              PictureID.TITLE: article.find('img')['alt'],
              PictureID.CONTENT_URL: 'https://www.nukistream.com' + article.find('h3').find('a')['href'],
@@ -85,7 +83,5 @@ for article in articles:
              PictureID.DURATION: article.find('span').text}
   insertPicture(picture, fileobj)
 
-#print(picture_array)
+print('ぬきスト', str(len(articles))+"件見つかりました")
 fileobj.close()
-
-print('hogehoge')
