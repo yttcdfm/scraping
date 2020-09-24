@@ -20,10 +20,20 @@ class PictureID:
   DURATION = 'duration'
   POST_TIME = 'post_time'
 
+class CategoryID:
+  ID = {'巨乳': 1, '人妻': 2, '痴女': 3, 'ギャル': 4}
+
+class SiteName:
+  NUKISUTO = 'ぬきスト'
+  ERO_MOVIE_CAFE = 'エロ動画カフェ'
+
 ###################
 # 関数定義部
 ###################
+
 #pictureテーブルへのデータ登録
+# @param: picture 画像用連想配列の配列
+# @param: file file操作オブジェクト
 def insertPicture(picture, file):
   #接続
   conn = MySQLdb.connect(
@@ -41,7 +51,8 @@ def insertPicture(picture, file):
   +"`, `"+PictureID.SITE_NAME+"`, `"+PictureID.TITLE+"`, `"+PictureID.CONTENT_URL\
   +"`, `"+PictureID.PIC_URL+"`, `"+PictureID.DURATION+"`, `"+PictureID.POST_TIME+"`"
   
-  sql = "INSERT IGNORE INTO `picture` ("+target+") VALUES (NULL, 0, 0, '"+picture[PictureID.SITE_NAME]+"', '"+picture[PictureID.TITLE]+"', '"+picture[PictureID.CONTENT_URL]+"', '"+picture[PictureID.PIC_URL]+"', '"+picture[PictureID.DURATION]+"', CURRENT_TIMESTAMP);"
+  sql = "INSERT IGNORE INTO `picture` ("+target+") VALUES (NULL, "+picture[PictureID.CATEGORY_ID1]+", "+picture[PictureID.CATEGORY_ID2]+", '"+picture[PictureID.SITE_NAME]+"', '"+picture[PictureID.TITLE]+"', '"+picture[PictureID.CONTENT_URL]+"', '"+picture[PictureID.PIC_URL]+"', '"+picture[PictureID.DURATION]+"', CURRENT_TIMESTAMP);"
+  print(sql)
   file.write(sql)
   cursor.execute(sql)
   #rows = cursor.fetchall()
@@ -53,35 +64,151 @@ def insertPicture(picture, file):
   #切断
   conn.close
 
+#カテゴリ検索
+def searchCategory(category):
+  check = category in CategoryID.ID.keys()
+  if check:
+    return CategoryID.ID[category]
+  else:
+    return 0
+
+#スクレイピング - ぬきスト
+#@param: soup Beautiful Soupの操作用オブジェクト
+#@param: fileobj ファイル操作用オブジェクト
+#@site_title: サイトタイトル
+def scrapingNukisuto(soup, fileobj, site_title):
+  articles = soup.find_all('article')
+  
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+    categories = article.find_all('ul')
+    
+    category1 = 0
+    category2 = 0
+    
+    if len(categories) >= 2:
+      category1 = searchCategory(categories[0].find('a').text)
+      category2 = searchCategory(categories[1].find('a').text)
+    elif len(categories) == 1:
+      category1 = int(searchCategory(categories[0].find('a').text))
+      
+    picture = {PictureID.CATEGORY_ID1: str(category1),
+               PictureID.CATEGORY_ID2: str(category2),
+               PictureID.SITE_NAME: site_title,
+               PictureID.TITLE: article.find('img')['alt'],
+               PictureID.CONTENT_URL: 'https://www.nukistream.com' + article.find('h3').find('a')['href'],
+               PictureID.PIC_URL: 'https:' + article.find('img')['src'],
+               PictureID.DURATION: article.find('span').text}
+    insertPicture(picture, fileobj)
+
+  print(site_title, str(len(articles))+"件見つかりました")
+
+
+#スクレイピング
+#スクレイピング - エロ動画カフェ
+#@param: soup Beautiful Soupの操作用オブジェクト
+#@param: fileobj ファイル操作用オブジェクト
+#@site_title: サイトタイトル
+def scrapingEroMovieCafe(soup, fileobj, site_title):
+  articles = soup.find('div', class_='p-recent__inner flex-horizontal').find_all('div', class_='c-card js-atd__article')
+#  print(article[0])
+
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+    categories = article.find_all('li')
+    
+    category1 = 0
+    category2 = 0
+    print(categories[0].find('a').text)
+    if len(categories) >= 1:
+      category1 = CategoryID.ID['巨乳']
+      category2 = searchCategory(categories[0].find('a').text)
+      
+    picture = {PictureID.CATEGORY_ID1: str(category1),
+               PictureID.CATEGORY_ID2: str(category2),
+               PictureID.SITE_NAME: site_title,
+               PictureID.TITLE: article.find('a', class_='js-atd__link').text,
+               PictureID.CONTENT_URL: article.find('a', class_='js-atd__link')['href'],
+               PictureID.PIC_URL: article.find('img', class_='js-atd__img')['src'],
+               PictureID.DURATION: '-'}
+    insertPicture(picture, fileobj)
+
+  print(site_title, str(len(articles))+"件見つかりました")
+
+
+def scraping(site_title, url):
+  res = requests.get(url)
+  #print(res.text)
+
+  soup = BeautifulSoup(res.text.encode('utf-8'), "html.parser")
+
+  #print(soup)
+
+  picture_array = []
+
+  #print(searchCategory(articles[0].find('ul').find('a').text))
+
+  dt_now = datetime.datetime.now()
+  file = site_title+dt_now.strftime('%Y%m%d%H%M')+".sql"
+  print(file)
+  fileobj = open(file, "w", encoding = "utf_8")
+  
+  if site_title == SiteName.NUKISUTO:
+    scrapingNukisuto(soup, fileobj, site_title)
+  elif site_title == SiteName.ERO_MOVIE_CAFE:
+    scrapingEroMovieCafe(soup, fileobj, site_title)
+
+  fileobj.close()
+
+def scraping2():
+  url = 'http://xvideos-field5.com/archives/category/%e5%b7%a8%e4%b9%b3'
+  
+  res = requests.get(url)
+  #print(res.text)
+
+  soup = BeautifulSoup(res.text.encode('utf-8'), "html.parser")
+
+#  print(soup)
+
+  picture_array = []
+
+  article = soup.find('div', class_='p-recent__inner flex-horizontal')
+  print(article.find_all('div', class_='c-card js-atd__article')[0])
+  
+#  #print(searchCategory(articles[0].find('ul').find('a').text))
+#
+#  dt_now = datetime.datetime.now()
+#  file = "Avgle_"+dt_now.strftime('%Y%m%d%H%M')+".sql"
+#  print(file)
+#  fileobj = open(file, "w", encoding = "utf_8")
+#
+#  # 連想配列に取得したデータを詰める
+#  for article in articles:
+#    categories = article.find_all('ul')
+#    
+#    category1 = 0
+#    category2 = 0
+#    
+#    if len(categories) >= 2:
+#      category1 = searchCategory(categories[0].find('a').text)
+#      category2 = searchCategory(categories[1].find('a').text)
+#    elif len(categories) == 1:
+#      category1 = int(searchCategory(categories[0].find('a').text))
+#      
+#    picture = {PictureID.CATEGORY_ID1: str(category1),
+#               PictureID.CATEGORY_ID2: str(category2),
+#               PictureID.SITE_NAME: 'ぬきすと',
+#               PictureID.TITLE: article.find('img')['alt'],
+#               PictureID.CONTENT_URL: 'https://www.nukistream.com' + article.find('h3').find('a')['href'],
+#               PictureID.PIC_URL: 'https:' + article.find('img')['src'],
+#               PictureID.DURATION: article.find('span').text}
+#    insertPicture(picture, fileobj)
+#
+#  print('ぬきスト', str(len(articles))+"件見つかりました")
+#  fileobj.close()
+
 ##############################
 # メイン部
 ##############################  
-url = 'https://www.nukistream.com/category.php?id=1'
-res = requests.get(url)
-#print(res.text)
-
-soup = BeautifulSoup(res.text.encode('utf-8'), "html.parser")
-
-#print(soup)
-
-picture_array = []
-
-articles = soup.find_all('article')
-#print(articles)
-
-dt_now = datetime.datetime.now()
-file = "抜きスト_"+dt_now.strftime('%Y%m%d%H%M')+".sql"
-print(file)
-fileobj = open(file, "w", encoding = "utf_8")
-
-# 連想配列に取得したデータを詰める
-for article in articles:
-  picture = {PictureID.SITE_NAME: 'ぬきすと',
-             PictureID.TITLE: article.find('img')['alt'],
-             PictureID.CONTENT_URL: 'https://www.nukistream.com' + article.find('h3').find('a')['href'],
-             PictureID.PIC_URL: 'https:' + article.find('img')['src'],
-             PictureID.DURATION: article.find('span').text}
-  insertPicture(picture, fileobj)
-
-print('ぬきスト', str(len(articles))+"件見つかりました")
-fileobj.close()
+scraping(SiteName.NUKISUTO, 'https://www.nukistream.com/category.php?id=1')
+scraping(SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/archives/category/%e5%b7%a8%e4%b9%b3')
