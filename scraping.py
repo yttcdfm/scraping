@@ -157,7 +157,7 @@ def scraping(fileobj, site_title, url):
 # メイン部
 ##############################  
 dt_now = datetime.datetime.now()
-file = dt_now.strftime('%Y%m%d%H%M')+".sql"
+file = dt_now.strftime('%Y%m%d_%H%M')+".sql"
 fileobj = open(file, "w", encoding = "utf_8")
 
 scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/category.php?id=1')
