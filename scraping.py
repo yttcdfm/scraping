@@ -1,5 +1,5 @@
 # coding: UTF-8
-print('hello world!')
+print('スクレイピング結果')
 import requests
 import MySQLdb
 import sys
