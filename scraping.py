@@ -13,6 +13,7 @@ class PictureID:
   ID = 'id'
   CATEGORY_ID1 = 'category_id1'
   CATEGORY_ID2 = 'category_id2'
+  CATEGORY_ID3 = 'category_id3'
   SITE_NAME = 'site_name'
   TITLE = 'title'
   CONTENT_URL = 'content_url'
@@ -49,10 +50,10 @@ def insertPicture(picture, file):
   cursor = conn.cursor()
   
   target = "`"+PictureID.ID+"`, `"+PictureID.CATEGORY_ID1+"`, `"+PictureID.CATEGORY_ID2\
-  +"`, `"+PictureID.SITE_NAME+"`, `"+PictureID.TITLE+"`, `"+PictureID.CONTENT_URL\
+  +"`, "+PictureID.CATEGORY_ID3+", `"+PictureID.SITE_NAME+"`, `"+PictureID.TITLE+"`, `"+PictureID.CONTENT_URL\
   +"`, `"+PictureID.PIC_URL+"`, `"+PictureID.DURATION+"`, `"+PictureID.POST_TIME+"`"
   
-  sql = "INSERT IGNORE INTO `picture` ("+target+") VALUES (NULL, "+picture[PictureID.CATEGORY_ID1]+", "+picture[PictureID.CATEGORY_ID2]+", '"+picture[PictureID.SITE_NAME]+"', '"+picture[PictureID.TITLE]+"', '"+picture[PictureID.CONTENT_URL]+"', '"+picture[PictureID.PIC_URL]+"', '"+picture[PictureID.DURATION]+"', CURRENT_TIMESTAMP);"
+  sql = "INSERT IGNORE INTO `picture` ("+target+") VALUES (NULL, "+picture[PictureID.CATEGORY_ID1]+", "+picture[PictureID.CATEGORY_ID2]+", "+picture[PictureID.CATEGORY_ID3]+", '"+picture[PictureID.SITE_NAME]+"', '"+picture[PictureID.TITLE]+"', '"+picture[PictureID.CONTENT_URL]+"', '"+picture[PictureID.PIC_URL]+"', '"+picture[PictureID.DURATION]+"', CURRENT_TIMESTAMP);"
 #  print(sql)
   file.write(sql)
   cursor.execute(sql)
@@ -86,8 +87,13 @@ def scrapingNukisuto(soup, fileobj, site_title):
     
     category1 = 0
     category2 = 0
+    category3 = 0
     
-    if len(categories) >= 2:
+    if len(categories) >= 3:
+      category1 = searchCategory(categories[0].find('a').text)
+      category2 = searchCategory(categories[1].find('a').text)
+      category3 = searchCategory(categories[2].find('a').text)
+    elif len(categories) == 2:
       category1 = searchCategory(categories[0].find('a').text)
       category2 = searchCategory(categories[1].find('a').text)
     elif len(categories) == 1:
@@ -95,6 +101,7 @@ def scrapingNukisuto(soup, fileobj, site_title):
       
     picture = {PictureID.CATEGORY_ID1: str(category1),
                PictureID.CATEGORY_ID2: str(category2),
+               PictureID.CATEGORY_ID3: str(category3),
                PictureID.SITE_NAME: site_title,
                PictureID.TITLE: article.find('img')['alt'],
                PictureID.CONTENT_URL: 'https://www.nukistream.com' + article.find('h3').find('a')['href'],
@@ -120,13 +127,21 @@ def scrapingEroMovieCafe(soup, fileobj, site_title):
     
     category1 = 0
     category2 = 0
-    #print(categories[0].find('a').text)
-    if len(categories) >= 1:
+    category3 = 0
+
+    if len(categories) >= 3:
       category1 = searchCategory(categories[0].find('a').text)
       category2 = searchCategory(categories[1].find('a').text)
+      category3 = searchCategory(categories[2].find('a').text)
+    elif len(categories) == 2:
+      category1 = searchCategory(categories[0].find('a').text)
+      category2 = searchCategory(categories[1].find('a').text)
+    elif len(categories) == 1:
+      category1 = int(searchCategory(categories[0].find('a').text))
       
     picture = {PictureID.CATEGORY_ID1: str(category1),
                PictureID.CATEGORY_ID2: str(category2),
+               PictureID.CATEGORY_ID3: str(category3),
                PictureID.SITE_NAME: site_title,
                PictureID.TITLE: article.find('a', class_='js-atd__link').text,
                PictureID.CONTENT_URL: article.find('a', class_='js-atd__link')['href'],
@@ -151,8 +166,13 @@ def scrapingIqoo(soup, fileobj, site_title):
     
     category1 = 0
     category2 = 0
-    
-    if len(categories) >= 2:
+    category3 = 0
+
+    if len(categories) >= 3:
+      category1 = searchCategory(categories[0].find('a').text)
+      category2 = searchCategory(categories[1].find('a').text)
+      category3 = searchCategory(categories[2].find('a').text)
+    elif len(categories) == 2:
       category1 = searchCategory(categories[0].find('a').text)
       category2 = searchCategory(categories[1].find('a').text)
     elif len(categories) == 1:
@@ -160,6 +180,7 @@ def scrapingIqoo(soup, fileobj, site_title):
       
     picture = {PictureID.CATEGORY_ID1: str(category1),
                PictureID.CATEGORY_ID2: str(category2),
+               PictureID.CATEGORY_ID3: str(category3),
                PictureID.SITE_NAME: site_title,
                PictureID.TITLE: article.find('img')['alt'],
                PictureID.CONTENT_URL: 'https://iqoo.me' + article.find('a')['href'],
