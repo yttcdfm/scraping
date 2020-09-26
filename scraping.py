@@ -317,7 +317,7 @@ def scraping(fileobj, site_title, url):
 ##############################  
 dt_now = datetime.datetime.now()
 file = dt_now.strftime('%Y%m%d_%H%M')+".sql"
-fileobj = open(file, "w", encoding = "utf-8")
+fileobj = codecs.open(file, "w", encoding = "utf_8")
 
 #scraping(fileobj, SiteName.TEST, 'https://javmix.tv/video/')
 scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/')
