@@ -1,5 +1,6 @@
 # coding: UTF-8
 print('スクレイピング結果')
+import os
 import codecs
 import requests
 import MySQLdb
@@ -328,3 +329,5 @@ scraping(fileobj, SiteName.ERONUKI, 'https://ero-nuki.net/')
 scraping(fileobj, SiteName.JAVMIXTV, 'https://javmix.tv/video/')
 
 fileobj.close()
+
+os.remove(file)
