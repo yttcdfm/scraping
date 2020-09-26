@@ -26,6 +26,7 @@ class CategoryID:
 class SiteName:
   NUKISUTO = 'ぬきスト'
   ERO_MOVIE_CAFE = 'エロ動画カフェ'
+  IQOO = 'iQoo'
 
 ###################
 # 関数定義部
@@ -136,6 +137,39 @@ def scrapingEroMovieCafe(soup, fileobj, site_title):
   print(site_title, str(len(articles))+"件見つかりました")
 
 
+#スクレイピング
+#スクレイピング - iQoo
+#@param: soup Beautiful Soupの操作用オブジェクト
+#@param: fileobj ファイル操作用オブジェクト
+#@site_title: サイトタイトル
+def scrapingIqoo(soup, fileobj, site_title):
+  articles = soup.find_all('article')
+
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+    categories = article.find_all('li')
+    
+    category1 = 0
+    category2 = 0
+    
+    if len(categories) >= 2:
+      category1 = searchCategory(categories[0].find('a').text)
+      category2 = searchCategory(categories[1].find('a').text)
+    elif len(categories) == 1:
+      category1 = int(searchCategory(categories[0].find('a').text))
+      
+    picture = {PictureID.CATEGORY_ID1: str(category1),
+               PictureID.CATEGORY_ID2: str(category2),
+               PictureID.SITE_NAME: site_title,
+               PictureID.TITLE: article.find('img')['alt'],
+               PictureID.CONTENT_URL: 'https://iqoo.me' + article.find('a')['href'],
+               PictureID.PIC_URL: article.find('img')['src'],
+               PictureID.DURATION: article.find('span', class_='duration').text}
+    insertPicture(picture, fileobj)
+
+  print(site_title, str(len(articles))+"件見つかりました")
+
+
 def scraping(fileobj, site_title, url):
   res = requests.get(url)
   #print(res.text)
@@ -152,6 +186,8 @@ def scraping(fileobj, site_title, url):
     scrapingNukisuto(soup, fileobj, site_title)
   elif site_title == SiteName.ERO_MOVIE_CAFE:
     scrapingEroMovieCafe(soup, fileobj, site_title)
+  elif site_title == SiteName.IQOO:
+    scrapingIqoo(soup, fileobj, site_title)
 
 ##############################
 # メイン部
@@ -162,5 +198,6 @@ fileobj = open(file, "w", encoding = "utf_8")
 
 scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/category.php?id=1')
 scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/archives/category/%e5%b7%a8%e4%b9%b3')
+scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/search/%E5%B7%A8%E4%B9%B3/')
 
 fileobj.close()
