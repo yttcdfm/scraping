@@ -14,20 +14,23 @@ class PictureID:
   CATEGORY_ID1 = 'category_id1'
   CATEGORY_ID2 = 'category_id2'
   CATEGORY_ID3 = 'category_id3'
-  SITE_NAME = 'site_name'
-  TITLE = 'title'
-  CONTENT_URL = 'content_url'
-  PIC_URL = 'pic_url'
-  DURATION = 'duration'
-  POST_TIME = 'post_time'
+  SITE_NAME    = 'site_name'
+  TITLE        = 'title'
+  CONTENT_URL  = 'content_url'
+  PIC_URL      = 'pic_url'
+  DURATION     = 'duration'
+  POST_TIME    = 'post_time'
 
 class CategoryID:
   ID = {'巨乳': 1, '人妻': 2, '痴女': 3, 'ギャル': 4, '素人': 5, '熟女': 6, '美乳': 7}
 
 class SiteName:
-  NUKISUTO = 'ぬきスト'
-  ERO_MOVIE_CAFE = 'エロ動画カフェ'
-  IQOO = 'iQoo'
+  TEST            = 'テスト'
+  NUKISUTO        = 'ぬきスト'
+  ERO_MOVIE_CAFE  = 'エロ動画カフェ'
+  IQOO            = 'iQoo'
+  POYOPARA        = 'ぽよパラ'
+  ERONUKI         = 'エロヌキ'
 
 ###################
 # 関数定義部
@@ -74,6 +77,26 @@ def searchCategory(category):
   else:
     return 0
 
+#カテゴリ取得
+def getCategory(categories):
+    category1 = 0
+    category2 = 0
+    category3 = 0
+#    print(categories)
+    if len(categories) >= 3:
+      category1 = searchCategory(categories[0].find('a').text)
+      category2 = searchCategory(categories[1].find('a').text)
+      category3 = searchCategory(categories[2].find('a').text)
+    elif len(categories) == 2:
+      category1 = searchCategory(categories[0].find('a').text)
+      category2 = searchCategory(categories[1].find('a').text)
+    elif len(categories) == 1:
+      category1 = searchCategory(categories[0].find('a').text)
+    
+    category = [category1, category2, category3]
+    return category
+
+
 #スクレイピング - ぬきスト
 #@param: soup Beautiful Soupの操作用オブジェクト
 #@param: fileobj ファイル操作用オブジェクト
@@ -83,25 +106,13 @@ def scrapingNukisuto(soup, fileobj, site_title):
   
   # 連想配列に取得したデータを詰める
   for article in articles:
-    categories = article.find_all('ul')
-    
-    category1 = 0
-    category2 = 0
-    category3 = 0
-    
-    if len(categories) >= 3:
-      category1 = searchCategory(categories[0].find('a').text)
-      category2 = searchCategory(categories[1].find('a').text)
-      category3 = searchCategory(categories[2].find('a').text)
-    elif len(categories) == 2:
-      category1 = searchCategory(categories[0].find('a').text)
-      category2 = searchCategory(categories[1].find('a').text)
-    elif len(categories) == 1:
-      category1 = int(searchCategory(categories[0].find('a').text))
-      
-    picture = {PictureID.CATEGORY_ID1: str(category1),
-               PictureID.CATEGORY_ID2: str(category2),
-               PictureID.CATEGORY_ID3: str(category3),
+    categories = article.find_all('li')
+
+    category = getCategory(categories)
+
+    picture = {PictureID.CATEGORY_ID1: str(category[0]),
+               PictureID.CATEGORY_ID2: str(category[1]),
+               PictureID.CATEGORY_ID3: str(category[2]),
                PictureID.SITE_NAME: site_title,
                PictureID.TITLE: article.find('img')['alt'],
                PictureID.CONTENT_URL: 'https://www.nukistream.com' + article.find('h3').find('a')['href'],
@@ -124,24 +135,12 @@ def scrapingEroMovieCafe(soup, fileobj, site_title):
   # 連想配列に取得したデータを詰める
   for article in articles:
     categories = article.find_all('li')
-    
-    category1 = 0
-    category2 = 0
-    category3 = 0
 
-    if len(categories) >= 3:
-      category1 = searchCategory(categories[0].find('a').text)
-      category2 = searchCategory(categories[1].find('a').text)
-      category3 = searchCategory(categories[2].find('a').text)
-    elif len(categories) == 2:
-      category1 = searchCategory(categories[0].find('a').text)
-      category2 = searchCategory(categories[1].find('a').text)
-    elif len(categories) == 1:
-      category1 = int(searchCategory(categories[0].find('a').text))
-      
-    picture = {PictureID.CATEGORY_ID1: str(category1),
-               PictureID.CATEGORY_ID2: str(category2),
-               PictureID.CATEGORY_ID3: str(category3),
+    category = getCategory(categories)
+
+    picture = {PictureID.CATEGORY_ID1: str(category[0]),
+               PictureID.CATEGORY_ID2: str(category[1]),
+               PictureID.CATEGORY_ID3: str(category[2]),
                PictureID.SITE_NAME: site_title,
                PictureID.TITLE: article.find('a', class_='js-atd__link').text,
                PictureID.CONTENT_URL: article.find('a', class_='js-atd__link')['href'],
@@ -163,24 +162,12 @@ def scrapingIqoo(soup, fileobj, site_title):
   # 連想配列に取得したデータを詰める
   for article in articles:
     categories = article.find_all('li')
-    
-    category1 = 0
-    category2 = 0
-    category3 = 0
 
-    if len(categories) >= 3:
-      category1 = searchCategory(categories[0].find('a').text)
-      category2 = searchCategory(categories[1].find('a').text)
-      category3 = searchCategory(categories[2].find('a').text)
-    elif len(categories) == 2:
-      category1 = searchCategory(categories[0].find('a').text)
-      category2 = searchCategory(categories[1].find('a').text)
-    elif len(categories) == 1:
-      category1 = int(searchCategory(categories[0].find('a').text))
-      
-    picture = {PictureID.CATEGORY_ID1: str(category1),
-               PictureID.CATEGORY_ID2: str(category2),
-               PictureID.CATEGORY_ID3: str(category3),
+    category = getCategory(categories)
+
+    picture = {PictureID.CATEGORY_ID1: str(category[0]),
+               PictureID.CATEGORY_ID2: str(category[1]),
+               PictureID.CATEGORY_ID3: str(category[2]),
                PictureID.SITE_NAME: site_title,
                PictureID.TITLE: article.find('img')['alt'],
                PictureID.CONTENT_URL: 'https://iqoo.me' + article.find('a')['href'],
@@ -189,6 +176,89 @@ def scrapingIqoo(soup, fileobj, site_title):
     insertPicture(picture, fileobj)
 
   print(site_title, str(len(articles))+"件見つかりました")
+
+
+#スクレイピング
+#スクレイピング - ぽよパラ
+#@param: soup Beautiful Soupの操作用オブジェクト
+#@param: fileobj ファイル操作用オブジェクト
+#@site_title: サイトタイトル
+def scrapingPoyopara(soup, fileobj, site_title):
+  articles = soup.find_all('article')
+
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+    categories = article.find_all('li')
+
+    category = getCategory(categories)
+
+    picture = {PictureID.CATEGORY_ID1: str(category[0]),
+               PictureID.CATEGORY_ID2: str(category[1]),
+               PictureID.CATEGORY_ID3: str(category[2]),
+               PictureID.SITE_NAME: site_title,
+               PictureID.TITLE: article.find('img')['alt'],
+               PictureID.CONTENT_URL: 'https://iqoo.me' + article.find('a')['href'],
+               PictureID.PIC_URL: article.find('img')['src'],
+               PictureID.DURATION: article.find('span', class_='duration').text}
+    insertPicture(picture, fileobj)
+
+  print(site_title, str(len(articles))+"件見つかりました")
+
+
+#スクレイピング
+#スクレイピング - エロヌキ
+#@param: soup Beautiful Soupの操作用オブジェクト
+#@param: fileobj ファイル操作用オブジェクト
+#@site_title: サイトタイトル
+def scrapingEronuki(soup, fileobj, site_title):
+  articles = soup.find_all('article')
+
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+    categories = article.find_all('li')
+
+    category = getCategory(categories)
+
+    picture = {PictureID.CATEGORY_ID1: str(category[0]),
+               PictureID.CATEGORY_ID2: str(category[1]),
+               PictureID.CATEGORY_ID3: str(category[2]),
+               PictureID.SITE_NAME: site_title,
+               PictureID.TITLE: article.find('h2', class_='movie_main_title').text,
+               PictureID.CONTENT_URL: article.find('a')['href'],
+               PictureID.PIC_URL: article.find('img')['data-original'],
+               PictureID.DURATION: article.find('div', class_='movie-dur').text}
+#    print(picture)
+    insertPicture(picture, fileobj)
+
+  print(site_title, str(len(articles))+"件見つかりました")
+
+
+#スクレイピング
+#スクレイピング - テスト
+#@param: soup Beautiful Soupの操作用オブジェクト
+#@param: fileobj ファイル操作用オブジェクト
+#@site_title: サイトタイトル
+def scrapingTest(soup, fileobj, site_title):
+  articles = soup.find_all('article')
+  print(articles[0])
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+    categories = article.find_all('li')
+
+    category = getCategory(categories)
+
+    picture = {PictureID.CATEGORY_ID1: str(category[0]),
+               PictureID.CATEGORY_ID2: str(category[1]),
+               PictureID.CATEGORY_ID3: str(category[2]),
+               PictureID.SITE_NAME: site_title,
+               PictureID.TITLE: article.find('h2', class_='movie_main_title').text,
+               PictureID.CONTENT_URL: article.find('a')['href'],
+               PictureID.PIC_URL: article.find('img')['data-original'],
+               PictureID.DURATION: article.find('div', class_='movie-dur').text}
+#    print(picture)
+#    insertPicture(picture, fileobj)
+#
+#  print(site_title, str(len(articles))+"件見つかりました")
 
 
 def scraping(fileobj, site_title, url):
@@ -205,10 +275,16 @@ def scraping(fileobj, site_title, url):
   
   if site_title == SiteName.NUKISUTO:
     scrapingNukisuto(soup, fileobj, site_title)
+  elif site_title == SiteName.TEST:
+    scrapingTest(soup, fileobj, site_title)
   elif site_title == SiteName.ERO_MOVIE_CAFE:
     scrapingEroMovieCafe(soup, fileobj, site_title)
   elif site_title == SiteName.IQOO:
     scrapingIqoo(soup, fileobj, site_title)
+  elif site_title == SiteName.POYOPARA:
+    scrapingPoyopara(soup, fileobj, site_title)
+  elif site_title == SiteName.ERONUKI:
+    scrapingEronuki(soup, fileobj, site_title)
 
 ##############################
 # メイン部
@@ -217,8 +293,11 @@ dt_now = datetime.datetime.now()
 file = dt_now.strftime('%Y%m%d_%H%M')+".sql"
 fileobj = open(file, "w", encoding = "utf_8")
 
+#scraping(fileobj, SiteName.TEST, 'https://ero-nuki.net/')
 scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/')
 scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/')
 scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/')
+scraping(fileobj, SiteName.POYOPARA, 'https://poyopara.com/')
+scraping(fileobj, SiteName.ERONUKI, 'https://ero-nuki.net/')
 
 fileobj.close()
