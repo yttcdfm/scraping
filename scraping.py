@@ -296,7 +296,7 @@ def scrapingEromon(soup, fileobj, site_title):
                PictureID.CATEGORY_ID2: str(category[1]),
                PictureID.CATEGORY_ID3: str(category[2]),
                PictureID.SITE_NAME: site_title,
-               PictureID.TITLE: article.find('h3').text.replace("\n", "").replace("\t", ""),
+               PictureID.TITLE: article.find('h3').text.replace("\n", "").replace("\t", "").replace(" ", ""),
                PictureID.CONTENT_URL: article.find('a')['href'],
                PictureID.PIC_URL: article.find('img')['src'],
                PictureID.DURATION: article.find('div', class_='time p-1 mb-1').text}
