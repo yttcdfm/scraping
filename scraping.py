@@ -22,7 +22,7 @@ class PictureID:
   POST_TIME = 'post_time'
 
 class CategoryID:
-  ID = {'巨乳': 1, '人妻': 2, '痴女': 3, 'ギャル': 4}
+  ID = {'巨乳': 1, '人妻': 2, '痴女': 3, 'ギャル': 4, '素人': 5, '熟女': 6, '美乳': 7}
 
 class SiteName:
   NUKISUTO = 'ぬきスト'
