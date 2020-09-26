@@ -31,6 +31,7 @@ class SiteName:
   IQOO            = 'iQoo'
   POYOPARA        = 'ぽよパラ'
   ERONUKI         = 'エロヌキ'
+  JAVMIXTV          = 'Javmix.TV'
 
 ###################
 # 関数定義部
@@ -234,28 +235,51 @@ def scrapingEronuki(soup, fileobj, site_title):
 
 
 #スクレイピング
+#スクレイピング - Javmix.TV
+#@param: soup Beautiful Soupの操作用オブジェクト
+#@param: fileobj ファイル操作用オブジェクト
+#@site_title: サイトタイトル
+def scrapingJavmixtv(soup, fileobj, site_title):
+  articles = soup.find_all('div', class_='col-md-3 col-sm-6 col-xs-6')
+
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+    picture = {PictureID.CATEGORY_ID1: str(0),
+               PictureID.CATEGORY_ID2: str(0),
+               PictureID.CATEGORY_ID3: str(0),
+               PictureID.SITE_NAME: site_title,
+               PictureID.TITLE: article.find('img')['alt'],
+               PictureID.CONTENT_URL: article.find('a')['href'],
+               PictureID.PIC_URL: article.find('img')['src'],
+               PictureID.DURATION: article.find('span', class_='rating-bar bgcolor2 time_dur').text}
+    insertPicture(picture, fileobj)
+
+  print(site_title, str(len(articles))+"件見つかりました")
+
+
+#スクレイピング
 #スクレイピング - テスト
 #@param: soup Beautiful Soupの操作用オブジェクト
 #@param: fileobj ファイル操作用オブジェクト
 #@site_title: サイトタイトル
 def scrapingTest(soup, fileobj, site_title):
-  articles = soup.find_all('article')
+  articles = soup.find_all('div', class_='col-md-3 col-sm-6 col-xs-6')
   print(articles[0])
   # 連想配列に取得したデータを詰める
   for article in articles:
-    categories = article.find_all('li')
+#    categories = article.find_all('li')
+#
+#    category = getCategory(categories)
 
-    category = getCategory(categories)
-
-    picture = {PictureID.CATEGORY_ID1: str(category[0]),
-               PictureID.CATEGORY_ID2: str(category[1]),
-               PictureID.CATEGORY_ID3: str(category[2]),
+    picture = {PictureID.CATEGORY_ID1: str(0),
+               PictureID.CATEGORY_ID2: str(0),
+               PictureID.CATEGORY_ID3: str(0),
                PictureID.SITE_NAME: site_title,
-               PictureID.TITLE: article.find('h2', class_='movie_main_title').text,
+               PictureID.TITLE: article.find('img')['alt'],
                PictureID.CONTENT_URL: article.find('a')['href'],
-               PictureID.PIC_URL: article.find('img')['data-original'],
-               PictureID.DURATION: article.find('div', class_='movie-dur').text}
-#    print(picture)
+               PictureID.PIC_URL: article.find('img')['src'],
+               PictureID.DURATION: article.find('span', class_='rating-bar bgcolor2 time_dur').text}
+    print(picture)
 #    insertPicture(picture, fileobj)
 #
 #  print(site_title, str(len(articles))+"件見つかりました")
@@ -285,6 +309,8 @@ def scraping(fileobj, site_title, url):
     scrapingPoyopara(soup, fileobj, site_title)
   elif site_title == SiteName.ERONUKI:
     scrapingEronuki(soup, fileobj, site_title)
+  elif site_title == SiteName.JAVMIXTV:
+    scrapingJavmixtv(soup, fileobj, site_title)
 
 ##############################
 # メイン部
@@ -293,11 +319,12 @@ dt_now = datetime.datetime.now()
 file = dt_now.strftime('%Y%m%d_%H%M')+".sql"
 fileobj = open(file, "w", encoding = "utf_8")
 
-#scraping(fileobj, SiteName.TEST, 'https://ero-nuki.net/')
+#scraping(fileobj, SiteName.TEST, 'https://javmix.tv/video/')
 scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/')
 scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/')
 scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/')
 scraping(fileobj, SiteName.POYOPARA, 'https://poyopara.com/')
 scraping(fileobj, SiteName.ERONUKI, 'https://ero-nuki.net/')
+scraping(fileobj, SiteName.JAVMIXTV, 'https://javmix.tv/video/')
 
 fileobj.close()
