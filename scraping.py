@@ -1,5 +1,6 @@
 # coding: UTF-8
 print('スクレイピング結果')
+import codec
 import requests
 import MySQLdb
 import sys
