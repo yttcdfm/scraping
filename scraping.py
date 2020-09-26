@@ -33,7 +33,8 @@ class SiteName:
   IQOO            = 'iQoo'
   POYOPARA        = 'ぽよパラ'
   ERONUKI         = 'エロヌキ'
-  JAVMIXTV          = 'Javmix.TV'
+  JAVMIXTV        = 'Javmix.TV'
+  EROMON          = 'エロ動画もん'
 
 ###################
 # 関数定義部
@@ -81,22 +82,42 @@ def searchCategory(category):
 
 #カテゴリ取得
 def getCategory(categories):
-    category1 = 0
-    category2 = 0
-    category3 = 0
-#    print(categories)
-    if len(categories) >= 3:
-      category1 = searchCategory(categories[0].find('a').text)
-      category2 = searchCategory(categories[1].find('a').text)
-      category3 = searchCategory(categories[2].find('a').text)
-    elif len(categories) == 2:
-      category1 = searchCategory(categories[0].find('a').text)
-      category2 = searchCategory(categories[1].find('a').text)
-    elif len(categories) == 1:
-      category1 = searchCategory(categories[0].find('a').text)
+  category1 = 0
+  category2 = 0
+  category3 = 0
+#  print(categories)
+  if len(categories) >= 3:
+    category1 = searchCategory(categories[0].find('a').text)
+    category2 = searchCategory(categories[1].find('a').text)
+    category3 = searchCategory(categories[2].find('a').text)
+  elif len(categories) == 2:
+    category1 = searchCategory(categories[0].find('a').text)
+    category2 = searchCategory(categories[1].find('a').text)
+  elif len(categories) == 1:
+    category1 = searchCategory(categories[0].find('a').text)
     
-    category = [category1, category2, category3]
-    return category
+  category = [category1, category2, category3]
+  return category
+
+
+#カテゴリ取得
+def getCategory_multi(categories):
+  category1 = 0
+  category2 = 0
+  category3 = 0
+#  print(categories)
+  if len(categories) >= 3:
+    category1 = searchCategory(categories[0].text)
+    category2 = searchCategory(categories[1].text)
+    category3 = searchCategory(categories[2].text)
+  elif len(categories) == 2:
+    category1 = searchCategory(categories[0].text)
+    category2 = searchCategory(categories[1].text)
+  elif len(categories) == 1:
+    category1 = searchCategory(categories[0].text)
+    
+  category = [category1, category2, category3]
+  return category
 
 
 #スクレイピング - ぬきスト
@@ -259,27 +280,54 @@ def scrapingJavmixtv(soup, fileobj, site_title):
 
 
 #スクレイピング
+#スクレイピング - エロ動画もん
+#@param: soup Beautiful Soupの操作用オブジェクト
+#@param: fileobj ファイル操作用オブジェクト
+#@site_title: サイトタイトル
+def scrapingEromon(soup, fileobj, site_title):
+  articles = soup.find_all('div', class_='col-6 col-sm-6 col-md-4 col-lg-3 mb-1 p-1')
+
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+    categories = article.find('p', class_='tags').find_all('a')
+    category = getCategory_multi(categories)
+
+    picture = {PictureID.CATEGORY_ID1: str(category[0]),
+               PictureID.CATEGORY_ID2: str(category[1]),
+               PictureID.CATEGORY_ID3: str(category[2]),
+               PictureID.SITE_NAME: site_title,
+               PictureID.TITLE: article.find('h3').text.replace("\n", "").replace("\t", ""),
+               PictureID.CONTENT_URL: article.find('a')['href'],
+               PictureID.PIC_URL: article.find('img')['src'],
+               PictureID.DURATION: article.find('div', class_='time p-1 mb-1').text}
+    insertPicture(picture, fileobj)
+
+  print(site_title, str(len(articles))+"件見つかりました")
+
+
+#スクレイピング
 #スクレイピング - テスト
 #@param: soup Beautiful Soupの操作用オブジェクト
 #@param: fileobj ファイル操作用オブジェクト
 #@site_title: サイトタイトル
 def scrapingTest(soup, fileobj, site_title):
-  articles = soup.find_all('div', class_='col-md-3 col-sm-6 col-xs-6')
-  print(articles[0])
+#  articles = soup.find_all('div', class_='col-6 col-sm-6 col-md-4 col-lg-3 mb-1 p-1')
+#  print(articles[0])
   # 連想配列に取得したデータを詰める
   for article in articles:
-#    categories = article.find_all('li')
-#
-#    category = getCategory(categories)
+    categories = article.find('p', class_='tags').find_all('a')
+    print(categories)
 
-    picture = {PictureID.CATEGORY_ID1: str(0),
-               PictureID.CATEGORY_ID2: str(0),
-               PictureID.CATEGORY_ID3: str(0),
+    category = getCategory_multi(categories)
+
+    picture = {PictureID.CATEGORY_ID1: str(category[0]),
+               PictureID.CATEGORY_ID2: str(category[1]),
+               PictureID.CATEGORY_ID3: str(category[2]),
                PictureID.SITE_NAME: site_title,
-               PictureID.TITLE: article.find('img')['alt'],
+               PictureID.TITLE: article.find('h3').text.replace("\n", "").replace("\t", ""),
                PictureID.CONTENT_URL: article.find('a')['href'],
                PictureID.PIC_URL: article.find('img')['src'],
-               PictureID.DURATION: article.find('span', class_='rating-bar bgcolor2 time_dur').text}
+               PictureID.DURATION: article.find('div', class_='time p-1 mb-1').text}
     print(picture)
 #    insertPicture(picture, fileobj)
 #
@@ -293,8 +341,6 @@ def scraping(fileobj, site_title, url):
   soup = BeautifulSoup(res.text.encode('utf-8'), "html.parser")
 
   #print(soup)
-
-  picture_array = []
 
   #print(searchCategory(articles[0].find('ul').find('a').text))
   
@@ -312,6 +358,8 @@ def scraping(fileobj, site_title, url):
     scrapingEronuki(soup, fileobj, site_title)
   elif site_title == SiteName.JAVMIXTV:
     scrapingJavmixtv(soup, fileobj, site_title)
+  elif site_title == SiteName.EROMON:
+    scrapingEromon(soup, fileobj, site_title)
 
 ##############################
 # メイン部
@@ -320,13 +368,14 @@ dt_now = datetime.datetime.now()
 file = dt_now.strftime('%Y%m%d_%H%M')+".sql"
 fileobj = codecs.open(file, "w", encoding="utf_8")
 
-#scraping(fileobj, SiteName.TEST, 'https://javmix.tv/video/')
+#scraping(fileobj, SiteName.TEST, 'https://eromon.net/')
 scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/')
 scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/')
 scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/')
 scraping(fileobj, SiteName.POYOPARA, 'https://poyopara.com/')
 scraping(fileobj, SiteName.ERONUKI, 'https://ero-nuki.net/')
 scraping(fileobj, SiteName.JAVMIXTV, 'https://javmix.tv/video/')
+scraping(fileobj, SiteName.EROMON, 'https://eromon.net/')
 
 fileobj.close()
 
