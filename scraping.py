@@ -122,8 +122,8 @@ def scrapingEroMovieCafe(soup, fileobj, site_title):
     category2 = 0
     #print(categories[0].find('a').text)
     if len(categories) >= 1:
-      category1 = CategoryID.ID['巨乳']
-      category2 = searchCategory(categories[0].find('a').text)
+      category1 = searchCategory(categories[0].find('a').text)
+      category2 = searchCategory(categories[1].find('a').text)
       
     picture = {PictureID.CATEGORY_ID1: str(category1),
                PictureID.CATEGORY_ID2: str(category2),
@@ -196,8 +196,8 @@ dt_now = datetime.datetime.now()
 file = dt_now.strftime('%Y%m%d_%H%M')+".sql"
 fileobj = open(file, "w", encoding = "utf_8")
 
-scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/category.php?id=1')
-scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/archives/category/%e5%b7%a8%e4%b9%b3')
-scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/search/%E5%B7%A8%E4%B9%B3/')
+scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/')
+scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/')
+scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/')
 
 fileobj.close()
