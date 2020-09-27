@@ -7,6 +7,7 @@ import MySQLdb
 import sys
 import datetime
 from bs4 import BeautifulSoup
+import datetime
 
 ###################
 # 定数定義部
@@ -23,6 +24,14 @@ class PictureID:
   DURATION     = 'duration'
   POST_TIME    = 'post_time'
 
+class EventID:
+  ID        = 'id'
+  NAME      = 'name'
+  LOCATION  = 'location'
+  DATE      = 'date'
+  DETAIL    = 'detail'
+  POST_TIME = 'post_time'
+
 class CategoryID:
   ID = {'巨乳': 1, '人妻': 2, '痴女': 3, 'ギャル': 4, '素人': 5, '熟女': 6, '美乳': 7, 'フェラ': 8, 'パイパン': 9, 'スレンダー': 10}
 
@@ -35,6 +44,7 @@ class SiteName:
   ERONUKI         = 'エロヌキ'
   JAVMIXTV        = 'Javmix.TV'
   EROMON          = 'エロ動画もん'
+  AV_EVENT        = 'いベルト！'
 
 ###################
 # 関数定義部
@@ -71,6 +81,46 @@ def insertPicture(picture, file):
   conn.commit()
   #切断
   conn.close
+
+#class EventID:
+#  ID = 'id'
+#  NAME = 'name'
+#  LOCATION = 'location'
+#  DATE = 'date'
+#  DETAIL = 'detail'
+#  POST_TIME = 'post_time'
+
+#eventテーブルへのデータ登録
+# @param: event イベント用連想配列の配列
+# @param: file file操作オブジェクト
+def insertEvent(event, file):
+  #接続
+  conn = MySQLdb.connect(
+    user='zufyzqwv_admin',
+    password='cXj8WYi4gPSa66t',
+    host='localhost',
+    db='zufyzqwv_mydb',
+    use_unicode=True,
+    charset="utf8"
+  )
+  
+  cursor = conn.cursor()
+  
+  target = "`"+EventID.ID+"`, `"+EventID.NAME+"`, `"+EventID.LOCATION\
+  +"`, "+EventID.DATE+", `"+EventID.DETAIL+"`, `"+EventID.POST_TIME+"`"
+
+  sql = "INSERT IGNORE INTO `event` ("+target+") VALUES (NULL, '"+event[EventID.NAME]+"', '"+event[EventID.LOCATION]+"', '"+event[EventID.DATE]+"', '"+event[EventID.DETAIL]+"', CURRENT_TIMESTAMP);"
+  file.write(sql)
+  cursor.execute(sql)
+  #rows = cursor.fetchall()
+  #for row in rows:
+  #  print(row)
+  #print(rows[0][3])
+
+  conn.commit()
+  #切断
+  conn.close
+
 
 #カテゴリ検索
 def searchCategory(category):
@@ -305,31 +355,41 @@ def scrapingEromon(soup, fileobj, site_title):
   print(site_title, str(len(articles))+"件見つかりました")
 
 
+def scrapingAvevent(soup, fileobj, site_title):
+  articles = soup.find_all('li', class_='c-event-list_item')
+
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+    date_tmp = article.find_all('li', class_='c-event-item_detail-desc')[1].text.replace("\n", "").split("/")
+    date_value = datetime.date(int(date_tmp[0]), int(date_tmp[1]), int(date_tmp[2]))
+    
+    event =   {EventID.NAME: article.find('p', class_='c-event-item_title').text.replace("\u3000", " "),
+               EventID.LOCATION: article.find('li', class_='c-event-item_detail-desc').text.replace("\n", ""),
+               EventID.DATE: str(date_value),
+               EventID.DETAIL: "https://www.av-event.jp"+article.find('a', class_='c-event-item_title-link')['href']}
+    insertEvent(event, fileobj)
+    
+  print(site_title, str(len(articles))+"件見つかりました")
+
 #スクレイピング
 #スクレイピング - テスト
 #@param: soup Beautiful Soupの操作用オブジェクト
 #@param: fileobj ファイル操作用オブジェクト
 #@site_title: サイトタイトル
 def scrapingTest(soup, fileobj, site_title):
-#  articles = soup.find_all('div', class_='col-6 col-sm-6 col-md-4 col-lg-3 mb-1 p-1')
-#  print(articles[0])
+  articles = soup.find_all('li', class_='c-event-list_item')
+  print(articles[0])
   # 連想配列に取得したデータを詰める
   for article in articles:
-    categories = article.find('p', class_='tags').find_all('a')
-    print(categories)
-
-    category = getCategory_multi(categories)
-
-    picture = {PictureID.CATEGORY_ID1: str(category[0]),
-               PictureID.CATEGORY_ID2: str(category[1]),
-               PictureID.CATEGORY_ID3: str(category[2]),
-               PictureID.SITE_NAME: site_title,
-               PictureID.TITLE: article.find('h3').text.replace("\n", "").replace("\t", ""),
-               PictureID.CONTENT_URL: article.find('a')['href'],
-               PictureID.PIC_URL: article.find('img')['src'],
-               PictureID.DURATION: article.find('div', class_='time p-1 mb-1').text}
-    print(picture)
-#    insertPicture(picture, fileobj)
+    date_tmp = article.find_all('li', class_='c-event-item_detail-desc')[1].text.replace("\n", "").split("/")
+    date_value = datetime.date(int(date_tmp[0]), int(date_tmp[1]), int(date_tmp[2]))
+    
+    event =   {EventID.NAME: article.find('p', class_='c-event-item_title').text.replace("\u3000", " "),
+               EventID.LOCATION: article.find('li', class_='c-event-item_detail-desc').text.replace("\n", ""),
+               EventID.DATE: str(date_value),
+               EventID.DETAIL: "https://www.av-event.jp"+article.find('a', class_='c-event-item_title-link')['href']}
+    print(event)
+    insertEvent(event, fileobj)
 #
 #  print(site_title, str(len(articles))+"件見つかりました")
 
@@ -360,6 +420,9 @@ def scraping(fileobj, site_title, url):
     scrapingJavmixtv(soup, fileobj, site_title)
   elif site_title == SiteName.EROMON:
     scrapingEromon(soup, fileobj, site_title)
+  elif site_title == SiteName.AV_EVENT:
+    scrapingAvevent(soup, fileobj, site_title)
+
 
 ##############################
 # メイン部
@@ -368,7 +431,7 @@ dt_now = datetime.datetime.now()
 file = dt_now.strftime('%Y%m%d_%H%M')+".sql"
 fileobj = codecs.open(file, "w", encoding="utf_8")
 
-#scraping(fileobj, SiteName.TEST, 'https://eromon.net/')
+#scraping(fileobj, SiteName.TEST, 'https://www.av-event.jp/search/?q=%E7%94%B0%E4%B8%AD%E3%81%AD%E3%81%AD')
 scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/')
 scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/')
 scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/')
@@ -376,6 +439,7 @@ scraping(fileobj, SiteName.POYOPARA, 'https://poyopara.com/')
 scraping(fileobj, SiteName.ERONUKI, 'https://ero-nuki.net/')
 scraping(fileobj, SiteName.JAVMIXTV, 'https://javmix.tv/video/')
 scraping(fileobj, SiteName.EROMON, 'https://eromon.net/')
+scraping(fileobj, SiteName.AV_EVENT, 'https://www.av-event.jp/search/?q=%E7%94%B0%E4%B8%AD%E3%81%AD%E3%81%AD')
 
 fileobj.close()
 
