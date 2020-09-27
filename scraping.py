@@ -32,6 +32,14 @@ class EventID:
   DETAIL    = 'detail'
   POST_TIME = 'post_time'
 
+class UnitID:
+  ID          = 'id'
+  SITE_NAME   = 'site_name'
+  TITLE       = 'title'
+  CONTENT_URL = 'content_url'
+  PIC_URL     = 'pic_url'
+  POST_TIME   = 'post_time'
+
 class CategoryID:
   ID = {'巨乳': 1, '人妻': 2, '痴女': 3, 'ギャル': 4, '素人': 5, '熟女': 6, '美乳': 7, 'フェラ': 8, 'パイパン': 9, 'スレンダー': 10}
 
@@ -45,15 +53,13 @@ class SiteName:
   JAVMIXTV        = 'Javmix.TV'
   EROMON          = 'エロ動画もん'
   AV_EVENT        = 'いベルト！'
+  FANZA           = 'FANZA 動画'
 
 ###################
 # 関数定義部
 ###################
-
-#pictureテーブルへのデータ登録
-# @param: picture 画像用連想配列の配列
-# @param: file file操作オブジェクト
-def insertPicture(picture, file):
+#DBへの接続
+def connectDB():
   #接続
   conn = MySQLdb.connect(
     user='zufyzqwv_admin',
@@ -63,7 +69,14 @@ def insertPicture(picture, file):
     use_unicode=True,
     charset="utf8"
   )
-  
+  return conn;
+
+#pictureテーブルへのデータ登録
+# @param: picture 画像用連想配列の配列
+# @param: file file操作オブジェクト
+def insertPicture(picture, file):
+  #接続
+  conn = connectDB()  
   cursor = conn.cursor()
   
   target = "`"+PictureID.ID+"`, `"+PictureID.CATEGORY_ID1+"`, `"+PictureID.CATEGORY_ID2\
@@ -95,15 +108,7 @@ def insertPicture(picture, file):
 # @param: file file操作オブジェクト
 def insertEvent(event, file):
   #接続
-  conn = MySQLdb.connect(
-    user='zufyzqwv_admin',
-    password='cXj8WYi4gPSa66t',
-    host='localhost',
-    db='zufyzqwv_mydb',
-    use_unicode=True,
-    charset="utf8"
-  )
-  
+  conn = connectDB()  
   cursor = conn.cursor()
   
   target = "`"+EventID.ID+"`, `"+EventID.NAME+"`, `"+EventID.LOCATION\
@@ -117,6 +122,33 @@ def insertEvent(event, file):
   #  print(row)
   #print(rows[0][3])
 
+  conn.commit()
+  #切断
+  conn.close
+
+#class UnitID:
+#  ID          = 'id'
+#  SITE_NAME   = 'site_name'
+#  TITLE       = 'title'
+#  CONTENT_URL = 'content_url'
+#  PIC_URL     = 'pic_url'
+#  POST_TIME   = 'post_time'
+
+#unitテーブルへのデータ登録
+# @param: unit 単体作品の画像用連想配列の配列
+# @param: file file操作オブジェクト
+def insertUnit(unit, file):
+  #接続
+  conn = connectDB()  
+  cursor = conn.cursor()
+  
+  target = "`"+UnitID.ID+"`, `"+UnitID.SITE_NAME+"`, `"+UnitID.TITLE\
+  +"`, "+UnitID.CONTENT_URL+", `"+UnitID.PIC_URL+"`, `"+UnitID.POST_TIME+"`"
+  
+  sql = "INSERT IGNORE INTO `unit` ("+target+") VALUES (NULL, '"+unit[UnitID.SITE_NAME]+"', '"+unit[UnitID.TITLE]+"', '"+unit[UnitID.CONTENT_URL]+"', '"+unit[UnitID.PIC_URL]+"', CURRENT_TIMESTAMP);"
+  file.write(sql)
+  cursor.execute(sql)
+  
   conn.commit()
   #切断
   conn.close
@@ -354,7 +386,11 @@ def scrapingEromon(soup, fileobj, site_title):
 
   print(site_title, str(len(articles))+"件見つかりました")
 
-
+#スクレイピング
+#スクレイピング - イベルト！
+#@param: soup Beautiful Soupの操作用オブジェクト
+#@param: fileobj ファイル操作用オブジェクト
+#@site_title: サイトタイトル
 def scrapingAvevent(soup, fileobj, site_title):
   articles = soup.find_all('li', class_='c-event-list_item')
 
@@ -371,32 +407,53 @@ def scrapingAvevent(soup, fileobj, site_title):
     
   print(site_title, str(len(articles))+"件見つかりました")
 
+def scrapingFANZA(soup, fileobj, site_title):
+  articles = soup.find('div', class_='d-item').find_all('li')
+
+  # 連想配列に取得したデータを詰める
+  for article in articles:
+
+    res2 = requests.get(article.find('a')['href'])
+    soup2 = BeautifulSoup(res2.text.encode('utf-8'), "html.parser")
+    pic_url = soup2.find('img', class_='tdmm')['src']
+
+    unit =    {UnitID.SITE_NAME: SiteName.FANZA,
+               UnitID.TITLE: article.find('img')['alt'],
+               UnitID.CONTENT_URL: article.find('a')['href'],
+               UnitID.PIC_URL: pic_url}
+
+    insertUnit(unit, fileobj)
+
+  print(site_title, str(len(articles))+"件見つかりました")
+
 #スクレイピング
 #スクレイピング - テスト
 #@param: soup Beautiful Soupの操作用オブジェクト
 #@param: fileobj ファイル操作用オブジェクト
 #@site_title: サイトタイトル
 def scrapingTest(soup, fileobj, site_title):
-  articles = soup.find_all('li', class_='c-event-list_item')
+  articles = soup.find('div', class_='d-item').find_all('li')
   print(articles[0])
-  # 連想配列に取得したデータを詰める
-  for article in articles:
-    date_tmp = article.find_all('li', class_='c-event-item_detail-desc')[1].text.replace("\n", "").split("/")
-    date_value = datetime.date(int(date_tmp[0]), int(date_tmp[1]), int(date_tmp[2]))
-    
-    event =   {EventID.NAME: article.find('p', class_='c-event-item_title').text.replace("\u3000", " "),
-               EventID.LOCATION: article.find('li', class_='c-event-item_detail-desc').text.replace("\n", ""),
-               EventID.DATE: str(date_value),
-               EventID.DETAIL: "https://www.av-event.jp"+article.find('a', class_='c-event-item_title-link')['href']}
-    print(event)
-    insertEvent(event, fileobj)
+#  # 連想配列に取得したデータを詰める
+#  for article in articles:
+#
+#    res2 = requests.get(article.find('a')['href'])
+#    soup2 = BeautifulSoup(res2.text.encode('utf-8'), "html.parser")
+#    pic_url = soup2.find('img', class_='tdmm')['src']
+#
+#    unit =    {UnitID.SITE_NAME: SiteName.FANZA,
+#               UnitID.TITLE: article.find('img')['alt'],
+#               UnitID.CONTENT_URL: article.find('a')['href'],
+#               UnitID.PIC_URL: pic_url}
+#    print(unit)
+#    insertUnit(unit, fileobj)
 #
 #  print(site_title, str(len(articles))+"件見つかりました")
 
 
 def scraping(fileobj, site_title, url):
   res = requests.get(url)
-  #print(res.text)
+#  print(res.text)
 
   soup = BeautifulSoup(res.text.encode('utf-8'), "html.parser")
 
@@ -422,6 +479,8 @@ def scraping(fileobj, site_title, url):
     scrapingEromon(soup, fileobj, site_title)
   elif site_title == SiteName.AV_EVENT:
     scrapingAvevent(soup, fileobj, site_title)
+  elif site_title == SiteName.FANZA:
+    scrapingFANZA(soup, fileobj, site_title)
 
 
 ##############################
@@ -431,15 +490,16 @@ dt_now = datetime.datetime.now()
 file = dt_now.strftime('%Y%m%d_%H%M')+".sql"
 fileobj = codecs.open(file, "w", encoding="utf_8")
 
-#scraping(fileobj, SiteName.TEST, 'https://www.av-event.jp/search/?q=%E7%94%B0%E4%B8%AD%E3%81%AD%E3%81%AD')
-scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/')
-scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/')
-scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/')
-scraping(fileobj, SiteName.POYOPARA, 'https://poyopara.com/')
-scraping(fileobj, SiteName.ERONUKI, 'https://ero-nuki.net/')
-scraping(fileobj, SiteName.JAVMIXTV, 'https://javmix.tv/video/')
-scraping(fileobj, SiteName.EROMON, 'https://eromon.net/')
-scraping(fileobj, SiteName.AV_EVENT, 'https://www.av-event.jp/search/?q=%E7%94%B0%E4%B8%AD%E3%81%AD%E3%81%AD')
+#scraping(fileobj, SiteName.TEST, 'https://www.dmm.co.jp/digital/videoa/-/list/search/=/?searchstr=%E7%94%B0%E4%B8%AD%E3%81%AD%E3%81%AD%20%E5%8D%98%E4%BD%93%E4%BD%9C%E5%93%81')
+#scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/')
+#scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/')
+#scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/')
+#scraping(fileobj, SiteName.POYOPARA, 'https://poyopara.com/')
+#scraping(fileobj, SiteName.ERONUKI, 'https://ero-nuki.net/')
+#scraping(fileobj, SiteName.JAVMIXTV, 'https://javmix.tv/video/')
+#scraping(fileobj, SiteName.EROMON, 'https://eromon.net/')
+#scraping(fileobj, SiteName.AV_EVENT, 'https://www.av-event.jp/search/?q=%E7%94%B0%E4%B8%AD%E3%81%AD%E3%81%AD')
+scraping(fileobj, SiteName.FANZA, 'https://www.dmm.co.jp/digital/videoa/-/list/search/=/?searchstr=%E7%94%B0%E4%B8%AD%E3%81%AD%E3%81%AD%20%E5%8D%98%E4%BD%93%E4%BD%9C%E5%93%81')
 
 fileobj.close()
 
