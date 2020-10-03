@@ -75,83 +75,86 @@ def connectDB():
 # @param: picture 画像用連想配列の配列
 # @param: file file操作オブジェクト
 def insertPicture(picture, file):
-  #接続
-  conn = connectDB()  
-  cursor = conn.cursor()
+  if (picture[PictureID.CONTENT_URL].find('https://') != -1) and (picture[PictureID.PIC_URL].find('https://') != -1):
+    #接続
+    conn = connectDB()  
+    cursor = conn.cursor()
   
-  target = "`"+PictureID.ID+"`, `"+PictureID.CATEGORY_ID1+"`, `"+PictureID.CATEGORY_ID2\
-  +"`, "+PictureID.CATEGORY_ID3+", `"+PictureID.SITE_NAME+"`, `"+PictureID.TITLE+"`, `"+PictureID.CONTENT_URL\
-  +"`, `"+PictureID.PIC_URL+"`, `"+PictureID.DURATION+"`, `"+PictureID.POST_TIME+"`"
+    target = "`"+PictureID.ID+"`, `"+PictureID.CATEGORY_ID1+"`, `"+PictureID.CATEGORY_ID2\
+    +"`, "+PictureID.CATEGORY_ID3+", `"+PictureID.SITE_NAME+"`, `"+PictureID.TITLE+"`, `"+PictureID.CONTENT_URL\
+    +"`, `"+PictureID.PIC_URL+"`, `"+PictureID.DURATION+"`, `"+PictureID.POST_TIME+"`"
   
-  sql = "INSERT IGNORE INTO `picture` ("+target+") VALUES (NULL, "+picture[PictureID.CATEGORY_ID1]+", "+picture[PictureID.CATEGORY_ID2]+", "+picture[PictureID.CATEGORY_ID3]+", '"+picture[PictureID.SITE_NAME]+"', '"+picture[PictureID.TITLE]+"', '"+picture[PictureID.CONTENT_URL]+"', '"+picture[PictureID.PIC_URL]+"', '"+picture[PictureID.DURATION]+"', CURRENT_TIMESTAMP);"
-  file.write(sql)
-  cursor.execute(sql)
-  #rows = cursor.fetchall()
-  #for row in rows:
-  #  print(row)
-  #print(rows[0][3])
+    sql = "INSERT IGNORE INTO `picture` ("+target+") VALUES (NULL, "+picture[PictureID.CATEGORY_ID1]+", "+picture[PictureID.CATEGORY_ID2]+", "+picture[PictureID.CATEGORY_ID3]+", '"+picture[PictureID.SITE_NAME]+"', '"+picture[PictureID.TITLE]+"', '"+picture[PictureID.CONTENT_URL]+"', '"+picture[PictureID.PIC_URL]+"', '"+picture[PictureID.DURATION]+"', CURRENT_TIMESTAMP);"
+    file.write(sql)
+    cursor.execute(sql)
+    #rows = cursor.fetchall()
+    #for row in rows:
+    #  print(row)
+    #print(rows[0][3])
 
-  conn.commit()
-  #切断
-  conn.close
+    conn.commit()
+    #切断
+    conn.close
 
-#class EventID:
-#  ID = 'id'
-#  NAME = 'name'
-#  LOCATION = 'location'
-#  DATE = 'date'
-#  DETAIL = 'detail'
-#  POST_TIME = 'post_time'
+    #class EventID:
+    #  ID = 'id'
+    #  NAME = 'name'
+    #  LOCATION = 'location'
+    #  DATE = 'date'
+    #  DETAIL = 'detail'
+    #  POST_TIME = 'post_time'
 
 #eventテーブルへのデータ登録
 # @param: event イベント用連想配列の配列
 # @param: file file操作オブジェクト
 def insertEvent(event, file):
-  #接続
-  conn = connectDB()  
-  cursor = conn.cursor()
+  if (event[EventID.DETAIL].find('https://') != -1):
+    #接続
+    conn = connectDB()  
+    cursor = conn.cursor()
   
-  target = "`"+EventID.ID+"`, `"+EventID.NAME+"`, `"+EventID.LOCATION\
-  +"`, "+EventID.DATE+", `"+EventID.DETAIL+"`, `"+EventID.POST_TIME+"`"
+    target = "`"+EventID.ID+"`, `"+EventID.NAME+"`, `"+EventID.LOCATION\
+    +"`, "+EventID.DATE+", `"+EventID.DETAIL+"`, `"+EventID.POST_TIME+"`"
 
-  sql = "INSERT IGNORE INTO `event` ("+target+") VALUES (NULL, '"+event[EventID.NAME]+"', '"+event[EventID.LOCATION]+"', '"+event[EventID.DATE]+"', '"+event[EventID.DETAIL]+"', CURRENT_TIMESTAMP);"
-  file.write(sql)
-  cursor.execute(sql)
-  #rows = cursor.fetchall()
-  #for row in rows:
-  #  print(row)
-  #print(rows[0][3])
+    sql = "INSERT IGNORE INTO `event` ("+target+") VALUES (NULL, '"+event[EventID.NAME]+"', '"+event[EventID.LOCATION]+"', '"+event[EventID.DATE]+"', '"+event[EventID.DETAIL]+"', CURRENT_TIMESTAMP);"
+    file.write(sql)
+    cursor.execute(sql)
+    #rows = cursor.fetchall()
+    #for row in rows:
+    #  print(row)
+    #print(rows[0][3])
 
-  conn.commit()
-  #切断
-  conn.close
+    conn.commit()
+    #切断
+    conn.close
 
-#class UnitID:
-#  ID          = 'id'
-#  SITE_NAME   = 'site_name'
-#  TITLE       = 'title'
-#  CONTENT_URL = 'content_url'
-#  PIC_URL     = 'pic_url'
-#  POST_TIME   = 'post_time'
+    #class UnitID:
+    #  ID          = 'id'
+    #  SITE_NAME   = 'site_name'
+    #  TITLE       = 'title'
+    #  CONTENT_URL = 'content_url'
+    #  PIC_URL     = 'pic_url'
+    #  POST_TIME   = 'post_time'
 
 #unitテーブルへのデータ登録
 # @param: unit 単体作品の画像用連想配列の配列
 # @param: file file操作オブジェクト
 def insertUnit(unit, file):
-  #接続
-  conn = connectDB()  
-  cursor = conn.cursor()
+  if (unit[UnitID.CONTENT_URL].find('https://') != -1) and (unit[UnitID.PIC_URL].find('https://') != -1):
+    #接続
+    conn = connectDB()  
+    cursor = conn.cursor()
   
-  target = "`"+UnitID.ID+"`, `"+UnitID.SITE_NAME+"`, `"+UnitID.TITLE\
-  +"`, "+UnitID.CONTENT_URL+", `"+UnitID.PIC_URL+"`, `"+UnitID.POST_TIME+"`"
+    target = "`"+UnitID.ID+"`, `"+UnitID.SITE_NAME+"`, `"+UnitID.TITLE\
+    +"`, "+UnitID.CONTENT_URL+", `"+UnitID.PIC_URL+"`, `"+UnitID.POST_TIME+"`"
   
-  sql = "INSERT IGNORE INTO `unit` ("+target+") VALUES (NULL, '"+unit[UnitID.SITE_NAME]+"', '"+unit[UnitID.TITLE]+"', '"+unit[UnitID.CONTENT_URL]+"', '"+unit[UnitID.PIC_URL]+"', CURRENT_TIMESTAMP);"
-  file.write(sql)
-  cursor.execute(sql)
+    sql = "INSERT IGNORE INTO `unit` ("+target+") VALUES (NULL, '"+unit[UnitID.SITE_NAME]+"', '"+unit[UnitID.TITLE]+"', '"+unit[UnitID.CONTENT_URL]+"', '"+unit[UnitID.PIC_URL]+"', CURRENT_TIMESTAMP);"
+    file.write(sql)
+    cursor.execute(sql)
   
-  conn.commit()
-  #切断
-  conn.close
+    conn.commit()
+    #切断
+    conn.close
 
 
 #カテゴリ検索
@@ -492,7 +495,7 @@ fileobj = codecs.open(file, "w", encoding="utf_8")
 
 #scraping(fileobj, SiteName.TEST, 'https://www.dmm.co.jp/digital/videoa/-/list/search/=/?searchstr=%E7%94%B0%E4%B8%AD%E3%81%AD%E3%81%AD%20%E5%8D%98%E4%BD%93%E4%BD%9C%E5%93%81')
 scraping(fileobj, SiteName.NUKISUTO, 'https://www.nukistream.com/')
-scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/')
+#scraping(fileobj, SiteName.ERO_MOVIE_CAFE, 'http://xvideos-field5.com/')
 scraping(fileobj, SiteName.IQOO, 'https://iqoo.me/')
 scraping(fileobj, SiteName.POYOPARA, 'https://poyopara.com/')
 scraping(fileobj, SiteName.ERONUKI, 'https://ero-nuki.net/')
